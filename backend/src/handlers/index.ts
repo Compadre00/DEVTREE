@@ -1,0 +1,120 @@
+import { Request, Response } from "express";
+import { validationResult } from "express-validator";
+import slug from 'slug'
+import formidable from "formidable";
+import User from "../models/User";
+import { checkPassword, hashPassword } from "../utils/auth"
+import { generateJWT } from "../utils/jwt";
+import cloudinary from "../config/cloudinary";
+
+export const createAccount = async(req: Request, res: Response) => {    
+    
+    const { email, password } = req.body;
+
+    // Revisa si existe un correo ya registrado
+    const userExists = await User.findOne({email});
+    if (userExists) {
+        const error = new Error('El correo ya esta registrado');
+        res.status(409).json({error : error.message})
+        return
+    }
+
+    // Revisa si existe un nombre de usuario ya registrado
+    const handle = slug(req.body.handle, '');
+    const handleExists = await User.findOne({handle});
+    if (handleExists) {
+        const error = new Error('El nombre de usuario ya esta registrado');
+        res.status(409).json({error : error.message})
+        return
+    }
+
+
+    // Forma 1
+    // await User.create(req.body)
+
+    // Forma 2
+    const user = new User(req.body);
+    user.password = await hashPassword(password);
+    user.handle = handle;
+    
+    user.save();
+
+    res.status(201).send('Registro Creado correctamente')
+}
+
+export const login = async(req: Request, res: Response) => {   
+    // Manejo de errores
+    let errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        res.status(400).json({errors: errors.array()})
+        return
+    }
+    
+    const { email, password } = req.body;
+
+    // Revisa si el usuario ya esta registrado
+    const user = await User.findOne({email});
+    if (!user) {
+        const error = new Error('El usuario no existe');
+        res.status(404).json({error : error.message})
+        return
+    }
+
+    // comprobar password  
+    const isPasswordCorrect = await checkPassword(password, user.password);
+    if (!isPasswordCorrect) {
+        const error = new Error('La constraseña es incorrecta');
+        res.status(404).json({error : error.message})
+        return
+    }
+    
+    const token = generateJWT({id: user._id});
+
+    res.send(token);
+}
+
+export const getUser = async(req: Request, res: Response) => {
+    res.json(req.user)
+}
+
+export const updateProfile = async(req: Request, res: Response) => {
+    try {
+        const {description} = req.body;
+        // Revisa si existe un nombre de usuario ya registrado
+        const handle = slug(req.body.handle, '');
+        const handleExists = await User.findOne({handle});
+        if (handleExists && handleExists.email !== req.user.email) {
+            // Si el nombre de usuario ya existe y no es el mismo que el del usuario autenticado
+            const error = new Error('El nombre de usuario ya esta registrado');
+            res.status(409).json({error : error.message})
+            return
+        }
+
+        req.user.description = description;
+        req.user.handle = handle;
+
+        req.user.save();
+        res.send('Perfil actualizado correctamente')
+
+    } catch (e) {
+        const error = new Error('Hubo un error');
+        res.status(500).json({error : error.message})   
+    }
+}
+
+
+export const uploadImage = async(req: Request, res: Response) => {
+
+    const form = formidable({multiples: false});
+
+    form.parse(req, (error, fields, files) => {
+        console.log(files.file[0].filepath);
+    })
+
+    try {
+        
+    } catch (e) {
+        const error = new Error('Hubo un error');
+        res.status(500).json({error : error.message})   
+    }
+}
