@@ -22,7 +22,8 @@
     "formidable": "^3.5.2",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.8.4",
-    "slug": "8.2.3"
+    "slug": "8.2.3",
+    "uuid": "^11.1.0"
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.2",
