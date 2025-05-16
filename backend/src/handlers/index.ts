@@ -80,7 +80,7 @@ export const getUser = async(req: Request, res: Response) => {
 
 export const updateProfile = async(req: Request, res: Response) => {
     try {
-        const {description} = req.body;
+        const {description, links} = req.body;
         // Revisa si existe un nombre de usuario ya registrado
         const handle = slug(req.body.handle, '');
         const handleExists = await User.findOne({handle});
@@ -93,6 +93,7 @@ export const updateProfile = async(req: Request, res: Response) => {
 
         req.user.description = description;
         req.user.handle = handle;
+        req.user.links = links;
 
         req.user.save();
         res.send('Perfil actualizado correctamente')
@@ -110,8 +111,6 @@ export const uploadImage = async(req: Request, res: Response) => {
 
     try {
         form.parse(req, (error, fields, files) => {
-            console.log(files.file[0].filepath);
-
             cloudinary.uploader.upload(files.file[0].filepath, {public_id: uuid()}, async function(error, result) {
                 if (error) {
                     const error = new Error('Hubo un error al subir la imagen');
