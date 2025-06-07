@@ -45,13 +45,9 @@ export default function LinkTreeView() {
             }
         });
         setDevTreeLinks(updatedLinks);
-        queryClient.setQueryData(['user'], (prevData: User) => {
-            return { 
-                ...prevData, 
-                links: JSON.stringify(updatedLinks)
-            }
-        })
     }
+
+    const links : SocialNetwork[] = JSON.parse(user.links);
 
     const handleEnableLink = (socialNetrowk: String) => {
         const updatedLinks = devTreeLinks.map(link => {
@@ -62,15 +58,69 @@ export default function LinkTreeView() {
                     toast.error("URL no valida")
                 }
             }
-
             return link;
         });
+
         setDevTreeLinks(updatedLinks);
 
+        let updatedItems : SocialNetwork[] = [];
+
+        const selectedSocialNetwork = updatedLinks.find(link => link.name === socialNetrowk);
+        if (selectedSocialNetwork?.enabled) {
+            // Encuentra el id del nuevo elemento
+            // Aquellos que son mayores a 0 son los que ya existen
+            const id = links.filter(link => link.id).length + 1;
+            if (links.some( link => link.name === socialNetrowk)) {
+                updatedItems = links.map(link => {
+                    if (link.name === socialNetrowk) {
+                        return {
+                            ...link,
+                            id: id,
+                            enabled: true
+                        }
+                    } else {
+                        return link;
+                    }
+                })
+                
+            } else {
+            const newItem = {
+                ...selectedSocialNetwork,
+                id: id
+                }
+                updatedItems = [...links, newItem];
+            }
+        } else {
+            const indexToUpdate = links.findIndex(link => link.name === socialNetrowk);
+            updatedItems = links.map( link => {
+                if (link.name === socialNetrowk) {
+                    return {
+                        ...link,
+                        id: 0,
+                        enabled: false
+                    }
+                } else if (link.id > indexToUpdate && (indexToUpdate !== 0 && link.id === 1)) {
+                    return {
+                        ...link,
+                        id: link.id - 1
+                    }
+                } else {
+                    return link;
+                }
+
+            })
+        }
+            
+        console.log("updatedItems", updatedItems);
+        
+        
+        // Update the user data in the query client
+        // This is a workaround to avoid mutating the original user object
+        // and to ensure that the query client has the latest data
         queryClient.setQueryData(['user'], (prevData: User) => {
             return { 
                 ...prevData, 
-                links: JSON.stringify(updatedLinks)
+                links: JSON.stringify(updatedItems)
             }
         })
     }
@@ -88,7 +138,7 @@ export default function LinkTreeView() {
 
             <button 
             className="bg-cyan-400 p-2 text-lg w-full uppercase text-slate-600 rounded font-bold"
-            onClick={() => mutate(user)}
+            onClick={() => mutate(queryClient.getQueryData(['user'])!)}
             >Guardar cambios</button>
 
         </div>
