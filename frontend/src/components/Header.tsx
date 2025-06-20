@@ -1,3 +1,5 @@
+import AdminNavigation from "./nav/AdminNavigation";
+
 export default function DevTree() {
     return (
         <header className="bg-slate-800 py-5">
@@ -5,14 +7,9 @@ export default function DevTree() {
                 <div className="w-full p-5 lg:p-0 md:w-1/3">
                     <img src="/logo.svg" className="w-full block" />
                 </div>
-                <div className="md:w-1/3 md:flex md:justify-end">
-                    <button
-                        className=" bg-lime-500 p-2 text-slate-800 uppercase font-black text-xs rounded-lg cursor-pointer"
-                        onClick={() => { }}
-                    >
-                        Cerrar Sesión
-                    </button>
-                </div>
+                <nav className="md:w-1/3 md:flex md:justify-end">
+                    <AdminNavigation />
+                </nav>
             </div>
         </header>
     )
