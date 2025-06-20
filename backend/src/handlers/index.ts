@@ -7,6 +7,7 @@ import User from "../models/User";
 import { checkPassword, hashPassword } from "../utils/auth"
 import { generateJWT } from "../utils/jwt";
 import cloudinary from "../config/cloudinary";
+import router from "../router";
 
 export const createAccount = async(req: Request, res: Response) => {    
     
@@ -146,6 +147,20 @@ export const getUserByHandle = async(req: Request, res: Response) => {
         
         res.json(user);
         
+    } catch (error) {
+        const err = new Error('Hubo un error al obtener el usuario');
+        res.status(500).json({error : err.message})
+    }
+}
+
+
+export const searchByHandle = async(req: Request, res: Response) => {
+
+    console.log(req.body.handle);
+    
+
+    try {
+
     } catch (error) {
         const err = new Error('Hubo un error al obtener el usuario');
         res.status(500).json({error : err.message})
