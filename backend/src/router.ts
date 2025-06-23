@@ -41,6 +41,7 @@ router.get('/:handle',getUserByHandle)
 
 router.post('/search',
     body('handle').notEmpty().withMessage('El handle no puede ir vacio'),
+    handleInputErrors,
     searchByHandle
 )
 

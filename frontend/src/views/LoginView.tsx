@@ -1,12 +1,17 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import ErrorMessage from "../components/ErrorMessage";
 import { LoginForm } from "../types";
 import { toast } from "sonner";
 import { isAxiosError } from "axios";
 import api from "../config/axios";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function LoginView() {
+  
+  const navigate = useNavigate();
+  const queryClient = useQueryClient()
+
   const initialValues : LoginForm = {
     email: "",
     password: "",
@@ -22,14 +27,14 @@ export default function LoginView() {
     try {
         const {data} = await api.post(`/auth/login`, formData)
         localStorage.setItem('AUTH_TOKEN', data)
+        await queryClient.invalidateQueries()
+        navigate('/admin');
     } catch (error) {
         if (isAxiosError(error) && error.response) {
             toast.error(error.response.data.error);
         }
     }
   }
-
-
 
   return (
     <>
@@ -76,12 +81,11 @@ export default function LoginView() {
             <ErrorMessage>{errors.password.message}</ErrorMessage>
           )}
         </div>
-
-        <input
-          type="submit"
-          className="bg-cyan-400 p-3 text-lg w-full uppercase text-slate-600 rounded-lg font-bold cursor-pointer"
-          value="Iniciar Sesión"
-        />
+          <input
+            type="submit"
+            className="bg-cyan-400 p-3 text-lg w-full uppercase text-slate-600 rounded-lg font-bold cursor-pointer"
+            value="Iniciar Sesión"
+            />
       </form>
 
       <nav className="mt-10">
